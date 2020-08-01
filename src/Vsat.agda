@@ -4,6 +4,7 @@ open import Data.Bool using (Bool; if_then_else_;true;false)
 open import Data.Product using (_×_; proj₁; proj₂) renaming (_,_ to ⟨_,_⟩)
 open import Data.String using (String; _≈_; _==_; _≟_)
 open import Relation.Binary.PropositionalEquality as Eq
+open import Data.Product
 open Eq using (_≡_; refl; sym; cong)
 open Eq.≡-Reasoning
 open import Data.Sum using (_⊎_; inj₁; inj₂)
@@ -122,20 +123,20 @@ open _≲_
 open DecPropMembership _≟_
 open Sub using (_⊆_)
 
--- data Total {n : ℕ.ℕ} : Vpl → List (String × Bool) n → Set where
---   istotal : ∀ {v : Vpl} {conf : List (String × Bool)}
---     → All (λ d → d ∈ (names conf)) (dimensions v)
---     ------------------------------
---     → Total v conf
+data Total : Vpl → List (String × Bool) → Set where
+  istotal : ∀ {v : Vpl} {conf : List (String × Bool)}
+    → (dimensions v) ⊆ (names conf)
+    ------------------------------
+    → Total v conf
 
--- isTotal : ∀ (v : Vpl) (conf : List (String × Bool)) → All ()
+test : Vpl
+test = vAnd (chc "A" (vRef "a") (vRef "b")) (vRef "c")
 
--- just do a simple test case on lists for ∀ e in 1 :: 2 :: [] is in 1 :: 2 :: 3 :: []
+c : List (String × Bool)
+c = ("B", false) L.∷ ("A", true) L.∷ L.[]
 
--- data Total (n : ℕ.ℕ) : Vpl → List (String × Bool) n → Set where
-
--- lem₁ : All.All (_∈ ("A" L.∷ "B" L.∷ "C" L.∷ [])) ("A" L.∷ "B" L.∷ [])
--- lem₁ = here refl
+lem₁ : Total test c
+lem₁ = istotal λ p → there (∈-++⁺ˡ p)
 
 _₁ : "A" L.∷  L.[] ⊆ "A" L.∷ "B" L.∷ L.[]
 _₁ p = ∈-++⁺ˡ p
