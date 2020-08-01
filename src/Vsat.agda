@@ -8,9 +8,11 @@ open Eq using (_≡_; refl; sym; cong)
 open Eq.≡-Reasoning
 open import Data.Sum using (_⊎_; inj₁; inj₂)
 import Data.List.Membership.DecPropositional as DecPropMembership
+open import Data.List.Membership.Propositional.Properties using (∈-++⁺ˡ)
 open import Data.List.Relation.Unary.Any using (here; there)
 open import Data.List.Relation.Unary.All as All using (All; _∷_; [])
 import Data.List.Relation.Binary.Subset.Propositional as Sub
+open import Data.List.Relation.Binary.Subset.Propositional.Properties using (mono)
 open import Data.Nat as ℕ using (ℕ; suc; _+_; zero)
 open import Data.Maybe using (Maybe; just; nothing)
 open import Data.List as L using (List; _∷_; []; _++_; take)
@@ -136,11 +138,10 @@ open Sub using (_⊆_)
 -- lem₁ = here refl
 
 _₁ : "A" L.∷  L.[] ⊆ "A" L.∷ "B" L.∷ L.[]
-_₁ = λ p → cong ? p
--- try ++-mono with [] and "B" :: []
+_₁ p = ∈-++⁺ˡ p
 
 _ : L.[] ⊆ "A" L.∷ L.[]
 _ = λ p → there p
 
 _₂ : "A" L.∷ L.[] ⊆ "B" L.∷ "A" L.∷ L.[]
-_₂ = λ p → there p
+_₂ p = there p
