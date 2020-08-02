@@ -102,12 +102,15 @@ plain? (vNeg x) with plain? x
 ...                | yes a = yes (pl-neg a)
 ...                | no ¬a = no (neg¬plain ¬a)
 plain? (vOr l r) with plain? l | plain? r
-...                 | no p     | _        = no (or¬plain (inj₁ p))
-...                 | _        | no p     = no (or¬plain (inj₂ p))
+-- writing the redundant cases to appease agda-mode
+...                 | no p     | no _     = no (or¬plain (inj₁ p))
+...                 | no p     | yes _    = no (or¬plain (inj₁ p))
+...                 | yes _    | no p     = no (or¬plain (inj₂ p))
 ...                 | yes l₁   | yes r₁   = yes (pl-or l₁ r₁)
 plain? (vAnd l r) with plain? l | plain? r
-...                 | no p     | _        = no (and¬plain (inj₁ p))
-...                 | _        | no p     = no (and¬plain (inj₂ p))
+...                 | no p     | no _     = no (and¬plain (inj₁ p))
+...                 | no p     | yes _    = no (and¬plain (inj₁ p))
+...                 | yes _    | no p     = no (and¬plain (inj₂ p))
 ...                 | yes l₁   | yes r₁   = yes (pl-and l₁ r₁)
 plain? (chc d l r) = no chc¬plain
 
