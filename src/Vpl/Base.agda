@@ -15,6 +15,8 @@ open import Data.Nat as ℕ using (ℕ; suc; _+_; zero)
 open import Data.Maybe using (Maybe; just; nothing)
 open import Data.List as L using (List; _∷_; []; _++_)
 
+open import Utils.Base
+
 data Vpl : Set where
   vLit  : Bool   → Vpl
   vRef  : String → Vpl
@@ -42,14 +44,6 @@ dimensions (vRef _)    = L.[]
 
 names : List (String × Bool) → List String
 names = L.map proj₁
-
--- Seems like the standard agda way to lookup an element is to use a setoid,
--- Any, and losing a witness. I'm not committed to it yet
-get : {A : Set} → (A → Bool) → List A → Maybe A
-get _ [] = nothing
-get p (x ∷ xs) with p x
-...            | true = just x
-...            | false = get p xs
 
 -- | Configuration of a vpl formula, if ∃ dimension ∈ (f : Vpl) s.t. dimension ∉
 -- | Configuration then the choice is preserved

@@ -19,6 +19,8 @@ open import Data.Bool using (Bool; if_then_else_;true;false; _∧_)
 open import Relation.Nullary using (¬_)
 open import Relation.Nullary using (Dec; yes; no)
 open import Relation.Nullary.Negation using ()
+open import Function using (_∘_)
+open import Relation.Binary.PropositionalEquality using (_≡_)
 
 open DecPropMembership _≟_
 open Sub using (_⊆_)
@@ -54,14 +56,6 @@ lem₁ = istotal λ p → there (∈-++⁺ˡ p)
 ------------------------------------------------------------------------
 -------------------- Plain or Variational Formulas----------------------
 ------------------------------------------------------------------------
--- vpl→c₂? : ∀ (v : Vpl) → Dec (Vpl → C₂)
--- vpl→c₂? a@(vLit x) = yes (cLit x)
--- vpl→c₂? (vRef x) = cRef x
--- vpl→c₂? (vNeg x) = cNeg (vpl→c₂? x)
--- vpl→c₂? (vAnd x x₁) = cAnd (vpl→c₂? x) (vpl→c₂? x₁)
--- vpl→c₂? (vOr x x₁) = cOr (vpl→c₂? x) (vpl→c₂? x₁)
--- vpl→c₂? (chc x x₁ x₂) = ?
-
 data plain_ : Vpl → Set where
  pl-t : ∀ {b : Bool } → plain (vLit b)
  pl-r : ∀ {s : String} → plain (vRef s)
@@ -115,5 +109,43 @@ plain? (vAnd l r) with plain? l | plain? r
 plain? (chc d l r) = no chc¬plain
 
 ------------------------------------------------------------------------
--- Proof that Vpl embeds C₂
-open import Relation.Binary.Embedding.Base
+-------------------- VPL embeds C₂ -------------------------------------
+------------------------------------------------------------------------
+-- TODO: not sure this is needed for proofs
+-- open import Relation.Binary.Embedding.Base
+
+-- vpl≲C₂ : ∀ {c : C₂} {v : Vpl} → {!!}
+-- vpl≲C₂ {c} {v} =
+--   record
+--   { to = {!!}
+--   ; from = {!!}
+--   ; from∘to = {!!}
+--   }
+
+------------------------------------------------------------------------
+-------------------- VPL is Variation Preserving -----------------------
+------------------------------------------------------------------------
+-- A function is variation preseving if `∀ {v : Vpl} {c : List (String × Bool)}, {f : C₂ →
+-- [B]} {g : Vpl → B₁}, where B₁ is a variational result of g` the following
+-- holds `map f ∘ configure c v ≡ configure c ∘ g v` or as a diagram
+
+-- v  --- configure c ---→ List B
+-- |                        |
+-- |                        |
+-- g                        map f
+-- |                        |
+-- |                        |
+-- ↓                        ↓
+-- B₁ --- configure c ---→ [C]
+
+-- infix 3 v-preserving
+-- record v-preserving_
+--   (v : Vpl)
+--   (c : List (String × Bool))
+--   (B C B₁ : Set)
+--   : Set where
+--   field
+--     to-plain : B → C
+--     to-var   : ∀ (v : Vpl) → B₁
+--     preseves : ∀ {v : Vpl} {c : List (String × Bool)} → configure c ∘ to-var ≡ to-plain ∘ configure c
+-- open v-preserving_
