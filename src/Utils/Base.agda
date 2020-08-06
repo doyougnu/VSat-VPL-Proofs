@@ -25,3 +25,6 @@ get p (x ∷ xs) with p x
 -- we can just prepend an "s_" and move on
 fresh : S.String → S.String
 fresh name = "s_" S.++ name
+
+names : ∀ {B : Set} → List (String × B) → List String
+names = L.map proj₁

@@ -7,10 +7,14 @@
 
 module Vsat.Base where
 
-open import Data.String using (String; _==_)
-open import Data.List using (List; _∷_; []; _++_)
+open import Data.String using (String; _≈_; _==_; _≟_)
+open import Data.List using (List; _∷_; []; _++_;lookup;length)
+import Data.List.Relation.Unary.Any as A using (lookup)
 open import Data.Product using (_×_; proj₁; proj₂; _,_)
-open import Data.Bool using (Bool;true;false)
+open import Data.Bool using (Bool;true;false;T)
+open import Function using (_$_)
+
+import Data.List.Membership.DecPropositional as DecPropMembership
 
 open import Utils.Base
 open import Vpl.Base
@@ -47,8 +51,13 @@ Config = List (Dimension × Bool)
 ------------------------------------------------------------------------
 ------------------------ Symbolic Store Primitives ---------------------
 ------------------------------------------------------------------------
+open DecPropMembership _≟_
+open import Data.List.Relation.Unary.Any using (here; there;Any)
+open import Relation.Nullary.Decidable using (⌊_⌋; True; toWitness; fromWitness)
+open import Data.Fin using (Fin)
+-- open import Data.List.Membership.DecSetoid using (_∈?_)
 
-Δ-spawn : Δ → String → (Δ × Symbolic)
+Δ-spawn : Δ → Reference → (Δ × Symbolic)
 Δ-spawn store nm = (Δ' , nm)
   where
   new : String
@@ -57,8 +66,10 @@ Config = List (Dimension × Bool)
   Δ' : Δ
   Δ' = (nm , new) ∷ store
 
-Δ-ref : Δ → Reference → Maybe Symbolic
--- Δ-ref store nm = get (_== nm)
+Δ-ref : ∀ {n : Reference} {nms : Δ} {n∈ms : True (n ∈? (names nms)) } → Symbolic
+Δ-ref {nm} {nms} {n∉ms} = A.lookup $ toWitness n∉ms
+
+
 -- use find and throw away the proof
 
 -- | accumulation

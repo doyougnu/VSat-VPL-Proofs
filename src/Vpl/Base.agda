@@ -42,9 +42,6 @@ dimensions (vNeg  s)   = dimensions s
 dimensions (vLit _)    = L.[]
 dimensions (vRef _)    = L.[]
 
-names : List (String × Bool) → List String
-names = L.map proj₁
-
 -- | Configuration of a vpl formula, if ∃ dimension ∈ (f : Vpl) s.t. dimension ∉
 -- | Configuration then the choice is preserved
 configure : List (String × Bool) → Vpl → Vpl
