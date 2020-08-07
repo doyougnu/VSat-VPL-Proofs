@@ -8,7 +8,7 @@
 module Vsat.Base where
 
 open import Data.String using (String; _≈_; _==_; _≟_;_++_)
-open import Relation.Binary.PropositionalEquality using (_≡_)
+open import Relation.Binary.PropositionalEquality using (_≡_;refl)
 open import Data.List using (List; _∷_; []; _++_;lookup;length;any)
 import Data.List.Relation.Unary.Any as A using (lookup)
 open import Data.Product using (_×_; proj₁; proj₂; _,_)
@@ -23,9 +23,6 @@ open import Vpl.Base
 ------------------------------------------------------------------------
 -------------------- Type Synonyms -------------------------------------
 ------------------------------------------------------------------------
-Id : Set
-Id = String
-
 Dimension : Set
 Dimension = String
 
@@ -69,6 +66,7 @@ data IL : Set where
 -- | Symbolic × Symbolic when needed such as Δ-negate
 Δ : Set
 Δ = List (Reference × Symbolic)
+
 ------------------------------------------------------------------------
 ------------------------ Symbolic Store Primitives ---------------------
 ------------------------------------------------------------------------
@@ -123,12 +121,32 @@ open import Relation.Nullary.Decidable using (⌊_⌋; True; toWitness; fromWitn
   Δ′ = if s∈Δ then st else (s-ref , s) ∷ st
 Δ-or st l r = st , orIL (symIL l) (symIL r)
 
+Δ-and : Δ → Symbolic → Symbolic → (Δ × IL)
+Δ-and st l@(sRef s₁) r@(sRef s₂) = Δ′ , symIL s
+  where
+  s-ref : Reference
+  s-ref =  s₁ Data.String.++ "∨" Data.String.++ s₂
+
+  s : Symbolic
+  s = sAnd l r
+
+  s∈Δ : Bool
+  s∈Δ = any (s-ref ==_) $ names st
+
+  Δ′ : Δ
+  Δ′ = if s∈Δ then st else (s-ref , s) ∷ st
+Δ-and st l r = st , andIL (symIL l) (symIL r)
+
 -- | accumulation
 data _↦_  : (Δ × IL) → (Δ × IL) → Set where
 
   acc-unit : ∀ {Δ}
     ----------------
     → (Δ , ●) ↦ (Δ , ●)
+
+  acc-sym : ∀ {Δ s}
+    ----------------
+    → (Δ , (symIL s)) ↦ (Δ , (symIL s))
 
   acc-gen : ∀ {r Δ}
     → r ∉ (names Δ)
@@ -142,7 +160,7 @@ data _↦_  : (Δ × IL) → (Δ × IL) → Set where
 
   acc-neg : ∀ {s Δ}
     ----------------------
-    → (Δ , symIL s) ↦ Δ-negate Δ s
+    → (Δ , negIL (symIL s)) ↦ Δ-negate Δ s
 
   acc-C : ∀ {d l r Δ}
     ----------------------
@@ -154,8 +172,29 @@ data _↦_  : (Δ × IL) → (Δ × IL) → Set where
 
   acc-SOr : ∀ {l r Δ}
     ----------------------
-    → (Δ , orIL (symIL l) (symIL r)) ↦ Δ-or Δ l r
+    → (Δ , orIL (symIL l) (symIL r)) ↦  Δ-or Δ l r
 
+  acc-SAnd : ∀ {l r Δ}
+    ----------------------
+    → (Δ , andIL (symIL l) (symIL r)) ↦ Δ-and Δ l r
+
+  acc-VOr : ∀ {l r l′ r′ Δ Δ₁ Δ₂}
+    → (Δ , l) ↦ (Δ₁ , l′) → (Δ₁ , r) ↦ (Δ₂ , r′)
+    ----------------------
+    → (Δ , orIL l r) ↦ (Δ₂ , orIL l′ r′)
+
+
+
+module acc-testing where
+  _₁ : ([] , orIL (negIL (symIL (sRef "a"))) (symIL (sRef "b")))
+      ↦
+      (("¬a" , sNeg (sRef "a")) ∷ [] , orIL (symIL (sRef "¬a")) (symIL (sRef "b")))
+  _₁ = acc-VOr acc-neg acc-sym
+
+  _₂ : ([] , orIL (symIL (sRef "a")) (symIL (sRef "b")))
+      ↦ (("a∨b" , sOr (sRef "a") (sRef "b")) ∷ [] , symIL (sOr (sRef "a") (sRef "b")))
+  _₂ = acc-SOr
+-- accumulate : Δ → IL →
 -- TODO: Move accumulation to its own subdirectory
 -- TODO: module for judgements and testing
 -- TODO: do SAnd then congruence cases
