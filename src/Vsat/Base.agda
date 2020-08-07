@@ -140,6 +140,7 @@ open import Relation.Nullary.Decidable using (⌊_⌋; True; toWitness; fromWitn
 -- | accumulation
 data _↦_  : (Δ × IL) → (Δ × IL) → Set where
 
+--------------- Computation Rules ------------------
   acc-unit : ∀ {Δ}
     ----------------
     → (Δ , ●) ↦ (Δ , ●)
@@ -178,11 +179,24 @@ data _↦_  : (Δ × IL) → (Δ × IL) → Set where
     ----------------------
     → (Δ , andIL (symIL l) (symIL r)) ↦ Δ-and Δ l r
 
+--------------- Congruence Rules ------------------
+  acc-DM-Or : ∀ {l r Δ}
+    ----------------------
+    → (Δ , negIL (orIL l r)) ↦  (Δ , andIL (negIL l) (negIL r))
+
+  acc-DM-And : ∀ {l r Δ}
+    ----------------------
+    → (Δ , negIL (andIL l r)) ↦  (Δ , orIL (negIL l) (negIL r))
+
   acc-VOr : ∀ {l r l′ r′ Δ Δ₁ Δ₂}
     → (Δ , l) ↦ (Δ₁ , l′) → (Δ₁ , r) ↦ (Δ₂ , r′)
     ----------------------
     → (Δ , orIL l r) ↦ (Δ₂ , orIL l′ r′)
 
+  acc-VAnd : ∀ {l r l′ r′ Δ Δ₁ Δ₂}
+    → (Δ , l) ↦ (Δ₁ , l′) → (Δ₁ , r) ↦ (Δ₂ , r′)
+    ----------------------
+    → (Δ , andIL l r) ↦ (Δ₂ , andIL l′ r′)
 
 
 module acc-testing where
@@ -194,7 +208,8 @@ module acc-testing where
   _₂ : ([] , orIL (symIL (sRef "a")) (symIL (sRef "b")))
       ↦ (("a∨b" , sOr (sRef "a") (sRef "b")) ∷ [] , symIL (sOr (sRef "a") (sRef "b")))
   _₂ = acc-SOr
+
 -- accumulate : Δ → IL →
--- TODO: Move accumulation to its own subdirectory
--- TODO: module for judgements and testing
--- TODO: do SAnd then congruence cases
+-- TODO: accumulation is transitive
+-- TODO: infix accumulation operator correctly
+-- TODO: clean up syntax of symIl (sRef)
