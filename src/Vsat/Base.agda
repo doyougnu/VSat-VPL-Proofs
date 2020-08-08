@@ -8,12 +8,14 @@
 module Vsat.Base where
 
 open import Data.String using (String; _≈_; _==_; _≟_;_++_)
-open import Relation.Binary.PropositionalEquality using (_≡_;refl)
+open import Relation.Binary.PropositionalEquality using (_≡_;refl;_≢_;subst)
 open import Data.List using (List; _∷_; []; _++_;lookup;length;any)
 import Data.List.Relation.Unary.Any as A using (lookup)
 open import Data.Product using (_×_; proj₁; proj₂; _,_)
 open import Data.Bool using (Bool;true;false;T;if_then_else_)
-open import Function using (_$_;_∘_)
+open import Function using (_$_;_∘_;id)
+open import Data.Empty using (⊥;⊥-elim)
+open import Relation.Nullary using (¬_)
 
 import Data.List.Membership.DecPropositional as DecPropMembership
 
@@ -138,6 +140,7 @@ open import Relation.Nullary.Decidable using (⌊_⌋; True; toWitness; fromWitn
 Δ-and st l r = st , andIL (symIL l) (symIL r)
 
 -- | accumulation
+infixl 5 _↦_
 data _↦_  : (Δ × IL) → (Δ × IL) → Set where
 
 --------------- Computation Rules ------------------
@@ -209,7 +212,20 @@ module acc-testing where
       ↦ (("a∨b" , sOr (sRef "a") (sRef "b")) ∷ [] , symIL (sOr (sRef "a") (sRef "b")))
   _₂ = acc-SOr
 
--- accumulate : Δ → IL →
--- TODO: accumulation is transitive
--- TODO: infix accumulation operator correctly
--- TODO: clean up syntax of symIl (sRef)
+  -- _₃ : ([] , refIL "a") ↦ (("a" , sRef "s_a") ∷ [] , symIL (sRef "a"))
+  --    → ([] , refIL "b") ↦ (("b" , sRef "s_b") ∷ [] , symIL (sRef "b"))
+  --   ------------------------------------------------------
+  --   → ([] , orIL (negIL (refIL "a")) (refIL "b"))
+  --    ↦ (("a" , sRef "s_a") ∷ ("b", sRef "s_b") ∷ [] , orIL (negIL (symIL (sRef "a"))) (symIL (sRef "b")))
+  --    -- → ([] , orIL (negIL (symIL (sRef "a"))) (symIL (sRef "b")))
+  --    -- ↦ (("¬a" , sNeg (sRef "a")) ∷ [] , orIL (symIL (sRef "¬a")) (symIL (sRef "b")))
+  -- _₃ a b = acc-VOr acc-neg acc-sym
+
+  _₄ : ([] , refIL "a") ↦ (("a" , sRef "s_a") ∷ [] , symIL (sRef "a"))
+  _₄ = acc-gen λ ()
+
+  _₅ : (("b" , sRef "s_b") ∷ [] , refIL "a") ↦ (("a" , sRef "s_a") ∷ ("b" , sRef "s_b") ∷ [] , symIL (sRef "a"))
+  _₅ = acc-gen go
+    where go : "a" ∉ names (("b", sRef "s_b") ∷ [])
+          go (here ())
+          go (there ())
