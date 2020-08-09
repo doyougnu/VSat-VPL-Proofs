@@ -11,6 +11,7 @@ open import Data.Product
 open import Data.List
 open import Data.String
 open import Data.Bool
+open import Function using (_$_;_∘_;id)
 
 open import Vpl.Base
 open import Utils.Base
@@ -59,6 +60,21 @@ data IL : Set where
 Δ : Set
 Δ = List (Reference × Symbolic)
 
+--------------------------- Helpers -----------------------------
+s-ref : Reference → IL
+s-ref = symIL ∘ sRef
+
+mk-s-or : Reference → Reference → Reference
+mk-s-or a b = a Data.String.++ "∨" Data.String.++ b
+
+mk-s-and : Reference → Reference → Reference
+mk-s-and a b = a Data.String.++ "∧" Data.String.++ b
+
+s-or : Reference → Reference → Reference
+s-or a = fresh ∘ mk-s-or a
+
+s-and : Reference → Reference → Reference
+s-and a = fresh ∘ mk-s-and a
 
 -- | a context is a triple of the configuration, the symbolic store and the
 -- | solver memory. In the paper we split the triple for each operation, so
@@ -71,7 +87,6 @@ data Context : Set where
 symNames : Context → List Reference
 symNames ∅ = []
 symNames (_ || _ || s ⊢ _) = names s
-
 
 -- data _—↠_ : Context → Context → Set where
 --   _∎ : ∀ M

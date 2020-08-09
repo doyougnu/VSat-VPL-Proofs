@@ -29,22 +29,6 @@ open DecPropMembership _≟_
 open import Data.List.Relation.Unary.Any using (here; there;Any)
 open import Relation.Nullary.Decidable using (⌊_⌋; True; toWitness; fromWitness)
 
---------------------------- Helpers -----------------------------
-s-ref : Reference → IL
-s-ref = symIL ∘ sRef
-
-mk-s-or : Reference → Reference → Reference
-mk-s-or a b = a Data.String.++ "∨" Data.String.++ b
-
-mk-s-and : Reference → Reference → Reference
-mk-s-and a b = a Data.String.++ "∧" Data.String.++ b
-
-s-or : Reference → Reference → Reference
-s-or a b = fresh $ a Data.String.++ "∨" Data.String.++ b
-
-s-and : Reference → Reference → Reference
-s-and a b = fresh $ a Data.String.++ "∧" Data.String.++ b
-
 --------------------------- Primitive Operations -------------------------------
 Δ-spawn : Context → Context
 Δ-spawn (∁ || Γ || store ⊢ (refIL nm)) = ∁ || Γ || Δ' ⊢ (symIL $ sRef nm)
