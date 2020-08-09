@@ -29,6 +29,7 @@ open DecPropMembership _≟_
 open import Data.List.Relation.Unary.Any using (here; there;Any)
 open import Relation.Nullary.Decidable using (⌊_⌋; True; toWitness; fromWitness)
 
+--------------------------- Primitive Operations -------------------------------
 Δ-spawn : Context → Context
 Δ-spawn (∁ || Γ || store ⊢ (refIL nm)) = ∁ || Γ || Δ' ⊢ (symIL $ sRef nm)
   where
@@ -94,7 +95,7 @@ open import Relation.Nullary.Decidable using (⌊_⌋; True; toWitness; fromWitn
   Δ′ = if s∈Δ then st else (s-ref , s) ∷ st
 Δ-and st = st
 
--- | accumulation
+--------------------------- Accumulation Definition -----------------------------
 infixl 5 _↦_
 
 data _↦_  : Context → Context → Set where
@@ -125,34 +126,34 @@ data _↦_  : Context → Context → Set where
     ----------------------
     → ∁ || Γ || Δ ⊢ chcIL d l r ↦ ∁ || Γ || Δ ⊢ chcIL d l r
 
-  acc-Neg-C : ∀ {∁ Γ Δ d l r}
+  acc-neg-C : ∀ {∁ Γ Δ d l r}
     ----------------------
     → ∁ || Γ || Δ ⊢ negIL (chcIL d l r) ↦ ∁ || Γ || Δ ⊢ chcIL d (vNeg l) (vNeg r) -- notice negation is translated back to VPL
 
-  acc-SOr : ∀ {∁ Γ Δ l r}
+  acc-sor : ∀ {∁ Γ Δ l r}
     ----------------------
     → ∁ || Γ || Δ ⊢ orIL (symIL l) (symIL r) ↦  Δ-or (∁ || Γ || Δ ⊢ orIL (symIL l) (symIL r))
 
-  acc-SAnd : ∀ {∁ Γ Δ l r}
+  acc-sand : ∀ {∁ Γ Δ l r}
     ----------------------
     → ∁ || Γ || Δ ⊢ andIL (symIL l) (symIL r) ↦ Δ-and (∁ || Γ || Δ ⊢ andIL (symIL l) (symIL r))
 
 --------------- Congruence Rules ------------------
-  acc-DM-Or : ∀ {∁ Γ Δ l r}
+  acc-dm-or : ∀ {∁ Γ Δ l r}
     ----------------------
     → ∁ || Γ || Δ ⊢ negIL (orIL l r) ↦  ∁ || Γ || Δ ⊢ andIL (negIL l) (negIL r)
 
-  acc-DM-And : ∀ {∁ Γ Δ l r}
+  acc-dm-and : ∀ {∁ Γ Δ l r}
     ----------------------
     → ∁ || Γ || Δ ⊢ negIL (andIL l r) ↦  ∁ || Γ || Δ ⊢ orIL (negIL l) (negIL r)
 
-  acc-VOr : ∀ {∁ Γ Δ Δ₁ Δ₂ l r l′ r′}
+  acc-vor : ∀ {∁ Γ Δ Δ₁ Δ₂ l r l′ r′}
     → ∁ || Γ || Δ  ⊢ l ↦ ∁ || Γ || Δ₁ ⊢ l′
     → ∁ || Γ || Δ₁ ⊢ r ↦ ∁ || Γ || Δ₂ ⊢ r′
     ----------------------
     → ∁ || Γ || Δ ⊢ orIL l r ↦ ∁ || Γ || Δ₂ ⊢ orIL l′ r′
 
-  acc-VAnd : ∀ {∁ Γ Δ Δ₁ Δ₂ l r l′ r′}
+  acc-vand : ∀ {∁ Γ Δ Δ₁ Δ₂ l r l′ r′}
     → ∁ || Γ || Δ  ⊢ l ↦ ∁ || Γ || Δ₁ ⊢ l′
     → ∁ || Γ || Δ₁ ⊢ r ↦ ∁ || Γ || Δ₂ ⊢ r′
     ----------------------
@@ -171,12 +172,12 @@ module acc-testing where
   _₁ : ∀ {∁ Γ}
     → ∁ || Γ || ("b", sRef "b") ∷ ("a" , sRef "a") ∷ [] ⊢ orIL (negIL (symIL (sRef "a"))) (symIL (sRef "b"))
     ↦ ∁ || Γ || ("¬a" , sNeg (sRef "a")) ∷ ("b", sRef "b") ∷ ("a" , sRef "a") ∷ [] ⊢ orIL (symIL (sRef "¬a")) (symIL (sRef "b"))
-  _₁ = acc-VOr acc-neg acc-sym
+  _₁ = acc-vor acc-neg acc-sym
 
   _₂ : ∀ {∁ Γ}
     →  ∁ || Γ || [] ⊢ orIL (symIL (sRef "a")) (symIL (sRef "b"))
      ↦ ∁ || Γ || ("a∨b" , sOr (sRef "a") (sRef "b")) ∷ [] ⊢ symIL (sOr (sRef "a") (sRef "b"))
-  _₂ = acc-SOr
+  _₂ = acc-sor
 
   -- _₃ : ([] , refIL "a") ↦ (("a" , sRef "s_a") ∷ [] , symIL (sRef "a"))
   --    → ([] , refIL "b") ↦ (("b" , sRef "s_b") ∷ [] , symIL (sRef "b"))
@@ -185,8 +186,8 @@ module acc-testing where
   --   ↦ (("a" , sRef "s_a") ∷ ("b", sRef "s_b") ∷ [] , orIL (negIL (symIL (sRef "a"))) (symIL (sRef "b")))
      -- → ([] , orIL (negIL (symIL (sRef "a"))) (symIL (sRef "b")))
      -- ↦ (("¬a" , sNeg (sRef "a")) ∷ [] , orIL (symIL (sRef "¬a")) (symIL (sRef "b")))
-  -- _₃ a b = acc-VOr {!!} (↦-properties.Δ-cong (∈-insert ("a" , sRef "s_a") ∷ []) b)
-  -- _₃ a b = acc-VOr {!!} {!!}
+  -- _₃ a b = acc-vor {!!} (↦-properties.Δ-cong (∈-insert ("a" , sRef "s_a") ∷ []) b)
+  -- _₃ a b = acc-vor {!!} {!!}
 
   _₄ : ∀ {∁ Γ} → ∁ || Γ || [] ⊢ refIL "a" ↦ ∁ || Γ || ("a" , sRef "s_a") ∷ [] ⊢ symIL (sRef "a")
   _₄ = acc-gen λ ()
