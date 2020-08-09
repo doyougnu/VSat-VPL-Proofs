@@ -92,7 +92,8 @@ data _↣_  : Context → Context → Set where
 ---------------------- Reflexive Transitive Closure -----------------------------
 infix  2 _—↠_
 infix  1 begin_
-infixr 2 _—→⟨_⟩_
+infixr 2 _—→e⟨_⟩_
+infixr 2 _—→a⟨_⟩_
 infix  3 _∎
 
 data _—↠_ : Context → Context → Set where
@@ -100,8 +101,14 @@ data _—↠_ : Context → Context → Set where
     ---------------
     → M —↠ M
 
-  _—→⟨_⟩_ : ∀ L {M N}
+  _—→e⟨_⟩_ : ∀ L {M N}
     → L ↣ M
+    → M —↠ N
+    ---------------
+    → L —↠ N
+
+  _—→a⟨_⟩_ : ∀ L {M N}
+    → L ↦ M
     → M —↠ N
     ---------------
     → L —↠ N
@@ -113,10 +120,28 @@ begin_ : ∀ {M N}
 begin M—↠N = M—↠N
 
 module ev-testing where
-  _₁ : ∀ {∁ Γ Δ}
-    → ∁ || Γ || Δ ⊢ negIL (refIL "a")
-    —↠ ∁ || "¬a" ∷ Γ || ("¬a" , sNeg (sRef "s_a")) ∷ ("a" , sRef "s_a") ∷ Δ ⊢ ●
-  _₁ {∁} {Γ} {Δ} =
+
+  _₁ : ∀ {∁ Γ Δ a}
+    → ∁ || Γ || Δ ⊢ refIL a
+    -- —↠ ∁ || s-neg a ∷ Γ || (s-neg a , sNeg (sRef (→sym a))) ∷ (a , sRef (→sym a)) ∷ Δ ⊢ ●
+    —↠ ∁ || a ∷ Γ || Δ ⊢ ●
+  _₁ {∁} {Γ} {Δ} {a} =
     begin
-      (∁ || Γ || Δ ⊢ negIL (refIL "a"))
-    —→⟨ {!ev-neg !} ⟩ {!!}
+      (∁ || Γ || Δ ⊢ refIL a)
+      —→e⟨ ev-ref ⟩
+      ∁ || a ∷ Γ || Δ ⊢ ●
+      ∎
+
+  _₂ : ∀ {∁ Γ a}
+    → ∁ || Γ || [] ⊢ negIL (refIL a)
+    —↠ ∁ || s-neg (→sym a) ∷ Γ || (s-neg (→sym a) , sNeg (sRef (→sym a))) ∷ (a , sRef (→sym a)) ∷ [] ⊢ ●
+  _₂ {∁} {Γ} {a} =
+    begin
+      ∁ || Γ || [] ⊢ negIL (refIL a)
+      —→e⟨ ev-neg $ acc-neg (acc-gen λ())  ⟩
+      ∁ || Γ || (a , sRef (→sym a)) ∷ [] ⊢ negIL (s-ref (→sym a))
+      —→a⟨ acc-neg-s ⟩
+      ∁ || Γ || (s-neg (→sym a) , sNeg (sRef (→sym a))) ∷ (a , sRef (→sym a)) ∷ [] ⊢ s-ref (s-neg (→sym a))
+      —→e⟨ ev-sym  ⟩
+      ∁ || s-neg (→sym a) ∷ Γ || (s-neg (→sym a) , sNeg (sRef (→sym a))) ∷ (a , sRef (→sym a)) ∷ [] ⊢ ●
+      ∎

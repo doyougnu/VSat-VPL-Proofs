@@ -31,10 +31,10 @@ open import Relation.Nullary.Decidable using (⌊_⌋; True; toWitness; fromWitn
 
 --------------------------- Primitive Operations -------------------------------
 Δ-spawn : Context → Context
-Δ-spawn (∁ || Γ || store ⊢ (refIL nm)) = ∁ || Γ || Δ' ⊢ (symIL $ sRef nm)
+Δ-spawn (∁ || Γ || store ⊢ (refIL nm)) = ∁ || Γ || Δ' ⊢ s-ref new
   where
   new : Reference
-  new = fresh nm
+  new = →sym nm
 
   Δ' : Δ
   Δ' = (nm , sRef new) ∷ store
@@ -55,11 +55,11 @@ open import Relation.Nullary.Decidable using (⌊_⌋; True; toWitness; fromWitn
   s′-ref : Reference
   s′-ref = s-neg s
 
-  s′∈Δ : Bool
-  s′∈Δ = any (s′-ref ==_) $ names st
+  -- s′∈Δ : Bool
+  -- s′∈Δ = any (s′-ref ==_) $ names st
 
   Δ′ : Δ
-  Δ′ = if s′∈Δ then st else (s′-ref , s′) ∷ st
+  Δ′ = (s′-ref , s′) ∷ st
 
 Δ-negate st = st
 
@@ -213,12 +213,12 @@ module acc-testing where
      ↦ ∁ || Γ || (s-or a b , sOr (sRef a) (sRef b)) ∷ Δ ⊢ s-ref (s-or a b)
   x = acc-sor
 
-  _₄ : ∀ {∁ Γ} → ∁ || Γ || [] ⊢ refIL "a" ↦ ∁ || Γ || ("a" , sRef "s_a") ∷ [] ⊢ symIL (sRef "a")
+  _₄ : ∀ {∁ Γ} → ∁ || Γ || [] ⊢ refIL "a" ↦ ∁ || Γ || ("a" , sRef "s_a") ∷ [] ⊢ symIL (sRef "s_a")
   _₄ = acc-gen λ ()
 
   _₅ : ∀ {∁ Γ}
     → ∁ || Γ || ("b" , sRef "s_b") ∷ [] ⊢ refIL "a"
-    ↦ ∁ || Γ || ("a" , sRef "s_a") ∷ ("b" , sRef "s_b") ∷ [] ⊢ symIL (sRef "a")
+    ↦ ∁ || Γ || ("a" , sRef "s_a") ∷ ("b" , sRef "s_b") ∷ [] ⊢ symIL (sRef "s_a")
   _₅ = acc-gen go
     where go : "a" ∉ names (("b", sRef "s_b") ∷ [])
           go (here ())

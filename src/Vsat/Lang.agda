@@ -53,7 +53,7 @@ data IL : Set where
 -- | sent to the base solver. Note that we assume Γ processes references,
 -- | symbolic references and literals
 Γ : Set
-Γ = List String
+Γ = List Reference
 
 -- | the symbolic store, we associate Reference with symbolics but will also use
 -- | Symbolic × Symbolic when needed such as Δ-negate
@@ -81,6 +81,9 @@ s-and a = fresh ∘ mk-s-and a
 
 s-neg : Reference → Reference
 s-neg = fresh ∘ mk-s-neg
+
+→sym : Reference → Reference
+→sym = fresh
 
 -- | a context is a triple of the configuration, the symbolic store and the
 -- | solver memory. In the paper we split the triple for each operation, so
