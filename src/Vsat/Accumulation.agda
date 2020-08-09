@@ -29,11 +29,27 @@ open DecPropMembership _≟_
 open import Data.List.Relation.Unary.Any using (here; there;Any)
 open import Relation.Nullary.Decidable using (⌊_⌋; True; toWitness; fromWitness)
 
+--------------------------- Helpers -----------------------------
+s-ref : Reference → IL
+s-ref = symIL ∘ sRef
+
+mk-s-or : Reference → Reference → Reference
+mk-s-or a b = a Data.String.++ "∨" Data.String.++ b
+
+mk-s-and : Reference → Reference → Reference
+mk-s-and a b = a Data.String.++ "∧" Data.String.++ b
+
+s-or : Reference → Reference → Reference
+s-or a b = fresh $ a Data.String.++ "∨" Data.String.++ b
+
+s-and : Reference → Reference → Reference
+s-and a b = fresh $ a Data.String.++ "∧" Data.String.++ b
+
 --------------------------- Primitive Operations -------------------------------
 Δ-spawn : Context → Context
 Δ-spawn (∁ || Γ || store ⊢ (refIL nm)) = ∁ || Γ || Δ' ⊢ (symIL $ sRef nm)
   where
-  new : String
+  new : Reference
   new = fresh nm
 
   Δ' : Δ
@@ -64,36 +80,38 @@ open import Relation.Nullary.Decidable using (⌊_⌋; True; toWitness; fromWitn
 Δ-negate st = st
 
 Δ-or : Context → Context
-Δ-or (∁ || Γ || st ⊢ orIL (symIL l@(sRef s₁)) (symIL r@(sRef s₂))) = ∁ || Γ || Δ′ ⊢ symIL s
+Δ-or (∁ || Γ || st ⊢ orIL (symIL l@(sRef s₁)) (symIL r@(sRef s₂))) = ∁ || Γ || Δ′ ⊢ s-ref sref
   where
-  s-ref : Reference
-  s-ref =  s₁ Data.String.++ "∨" Data.String.++ s₂
+  sref : Reference
+  sref =  s-or s₁ s₂
 
   s : Symbolic
   s = sOr l r
 
-  s∈Δ : Bool
-  s∈Δ = any (s-ref ==_) $ names st
+  -- s∈Δ : Bool
+  -- s∈Δ = any (s-ref ==_) $ names st
 
   Δ′ : Δ
-  Δ′ = if s∈Δ then st else (s-ref , s) ∷ st
+  -- Δ′ = if s∈Δ then st else (s-ref , s) ∷ st
+  Δ′ = (sref , s) ∷ st
 Δ-or st = st
 
 Δ-and : Context → Context
-Δ-and (∁ || Γ || st ⊢ andIL (symIL l@(sRef s₁)) (symIL r@(sRef s₂))) = ∁ || Γ || Δ′ ⊢ symIL s
+Δ-and (∁ || Γ || st ⊢ andIL (symIL l@(sRef s₁)) (symIL r@(sRef s₂))) = ∁ || Γ || Δ′ ⊢ s-ref sref
   where
-  s-ref : Reference
-  s-ref =  s₁ Data.String.++ "∨" Data.String.++ s₂
+  sref : Reference
+  sref = s-and s₁ s₂
 
   s : Symbolic
   s = sAnd l r
 
   s∈Δ : Bool
-  s∈Δ = any (s-ref ==_) $ names st
+  s∈Δ = any (sref ==_) $ names st
 
   Δ′ : Δ
-  Δ′ = if s∈Δ then st else (s-ref , s) ∷ st
+  Δ′ = if s∈Δ then st else (sref , s) ∷ st
 Δ-and st = st
+
 
 --------------------------- Accumulation Definition -----------------------------
 infixl 5 _↦_
@@ -132,7 +150,7 @@ data _↦_  : Context → Context → Set where
 
   acc-sor : ∀ {∁ Γ Δ l r}
     ----------------------
-    → ∁ || Γ || Δ ⊢ orIL (symIL l) (symIL r) ↦  Δ-or (∁ || Γ || Δ ⊢ orIL (symIL l) (symIL r))
+    → ∁ || Γ || Δ ⊢ orIL (s-ref l) (s-ref r) ↦  Δ-or (∁ || Γ || Δ ⊢ orIL (s-ref l) (s-ref r))
 
   acc-sand : ∀ {∁ Γ Δ l r}
     ----------------------
@@ -147,11 +165,10 @@ data _↦_  : Context → Context → Set where
     ----------------------
     → ∁ || Γ || Δ ⊢ negIL (andIL l r) ↦  ∁ || Γ || Δ ⊢ orIL (negIL l) (negIL r)
 
-  acc-neg : ∀ {∁ Γ Δ Δ₁ Δ₂ v v′ v′′}
+  acc-neg : ∀ {∁ Γ Δ Δ₁ Δ₂ v v′}
     → ∁ || Γ || Δ  ⊢ v ↦ ∁ || Γ || Δ₁ ⊢ v′
-    → ∁ || Γ || Δ₁  ⊢ negIL v′ ↦ ∁ || Γ || Δ₂ ⊢ v′′
     ----------------------
-    → ∁ || Γ || Δ ⊢ negIL v ↦ ∁ || Γ || Δ₂ ⊢ v′′
+    → ∁ || Γ || Δ ⊢ negIL v ↦ ∁ || Γ || Δ₂ ⊢ negIL v′
 
   acc-vor : ∀ {∁ Γ Δ Δ₁ Δ₂ l r l′ r′}
     → ∁ || Γ || Δ  ⊢ l ↦ ∁ || Γ || Δ₁ ⊢ l′
@@ -164,6 +181,7 @@ data _↦_  : Context → Context → Set where
     → ∁ || Γ || Δ₁ ⊢ r ↦ ∁ || Γ || Δ₂ ⊢ r′
     ----------------------
     → ∁ || Γ || Δ ⊢ andIL l r ↦ ∁ || Γ || Δ₂ ⊢ andIL l′ r′
+
 
 module ↦-properties where
   Δ-cong : ∀ {Δ₁ Δ₂ : Δ} (f : Δ → Δ) →  Δ₁ ≡ Δ₂ → f Δ₁ ≡ f Δ₂
@@ -182,23 +200,34 @@ module acc-testing where
 
   _₂ : ∀ {∁ Γ}
     →  ∁ || Γ || [] ⊢ orIL (symIL (sRef "a")) (symIL (sRef "b"))
-     ↦ ∁ || Γ || ("a∨b" , sOr (sRef "a") (sRef "b")) ∷ [] ⊢ symIL (sOr (sRef "a") (sRef "b"))
+    ↦ ∁ || Γ || ("s_a∨b" , sOr (sRef "a") (sRef "b")) ∷ [] ⊢ s-ref (s-or "a" "b")
   _₂ = acc-sor
 
   _ₙ : ∀ {∁ Γ}
     →  ∁ || Γ || [] ⊢ negIL (refIL "a")
-    ↦ ∁ || Γ || ("¬a" , sNeg (sRef "a")) ∷ ("a" , sRef "a") ∷ [] ⊢ symIL (sRef "¬a")
-  _ₙ = acc-neg acc-ref (acc-neg {!!} {!!})
+    ↦ ∁ || Γ || ("a" , sRef "a") ∷ [] ⊢ negIL (symIL (sRef "a"))
+    → ∁ || Γ || ("a" , sRef "a") ∷ [] ⊢ negIL (symIL (sRef "a"))
+    ↦ ∁ || Γ || ("¬a" , sNeg (sRef "a")) ∷ ("a" , sRef "a") ∷ [] ⊢ (symIL (sRef "¬a"))
+  _ₙ a = acc-neg-s
 
-  -- _₃ : ([] , refIL "a") ↦ (("a" , sRef "s_a") ∷ [] , symIL (sRef "a"))
-  --    → ([] , refIL "b") ↦ (("b" , sRef "s_b") ∷ [] , symIL (sRef "b"))
-  --   ------------------------------------------------------
-  --   → ([] , orIL (negIL (refIL "a")) (refIL "b"))
-  --   ↦ (("a" , sRef "s_a") ∷ ("b", sRef "s_b") ∷ [] , orIL (negIL (symIL (sRef "a"))) (symIL (sRef "b")))
-     -- → ([] , orIL (negIL (symIL (sRef "a"))) (symIL (sRef "b")))
-     -- ↦ (("¬a" , sNeg (sRef "a")) ∷ [] , orIL (symIL (sRef "¬a")) (symIL (sRef "b")))
-  -- _₃ a b = acc-vor {!!} (↦-properties.Δ-cong (∈-insert ("a" , sRef "s_a") ∷ []) b)
-  -- _₃ a b = acc-vor {!!} {!!}
+  _₃ : ∀ {∁ Γ Δ Δ₁ Δ₂ Δ₃ a a′ a′′ b b′}
+    → ∁ || Γ || Δ ⊢ orIL (negIL (refIL a)) (refIL b)
+    ↦ ∁ || Γ || Δ₁ ⊢ orIL (negIL (refIL a)) (s-ref b′)
+
+    → ∁ || Γ || Δ₁ ⊢ orIL (negIL (refIL a)) (s-ref b′)
+    ↦ ∁ || Γ || Δ₂ ⊢ orIL (negIL (s-ref a′)) (s-ref b′)
+
+    → ∁ || Γ || Δ₂ ⊢ orIL (negIL (s-ref a′)) (s-ref b′)
+    ↦ ∁ || Γ || Δ₃ ⊢ orIL (s-ref a′′) (s-ref b′)
+
+    → ∁ || Γ || Δ₃ ⊢ orIL (s-ref a′′) (s-ref b′)
+    ↦ ∁ || Γ || (s-or a′′ b′ , sOr (sRef a′′) (sRef b′)) ∷ Δ₃ ⊢ s-ref (s-or a′′ b′)
+  _₃ a b c = acc-sor
+
+  x  : ∀ {∁ Γ Δ a b}
+     → ∁ || Γ || Δ ⊢ orIL (s-ref a) (s-ref b)
+     ↦ ∁ || Γ || (s-or a b , sOr (sRef a) (sRef b)) ∷ Δ ⊢ s-ref (s-or a b)
+  x = acc-sor
 
   _₄ : ∀ {∁ Γ} → ∁ || Γ || [] ⊢ refIL "a" ↦ ∁ || Γ || ("a" , sRef "s_a") ∷ [] ⊢ symIL (sRef "a")
   _₄ = acc-gen λ ()
