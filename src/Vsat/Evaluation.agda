@@ -39,8 +39,7 @@ open import Relation.Nullary.Decidable using (⌊_⌋; True; toWitness; fromWitn
 
 
 --------------------------- Evaluation Definition -----------------------------
--- | accumulation
-infixl 5 _↣_
+infixl 2 _↣_
 
 data _↣_  : Context → Context → Set where
   --------------- Computation Rules ------------------
@@ -89,9 +88,35 @@ data _↣_  : Context → Context → Set where
     ----------------------
     → ∁ || Γ || Δ ⊢ andIL l r ↣ ∁ || Γ₂ || Δ₂ ⊢ andIL l′ r′
 
-module ev-testing where
-  -- _₁ : ∀ {∁ Γ Δ}
-  --   → ∁ || Γ || Δ ⊢ andIL (refIL "a") (refIL "b") ↣ ∁ || "b" ∷ "a" ∷ Γ || Δ ⊢ ●
-  -- _₁ =
 
--- TODO: reflexive transitive closure for better proof objects
+---------------------- Reflexive Transitive Closure -----------------------------
+infix  2 _—↠_
+infix  1 begin_
+infixr 2 _—→⟨_⟩_
+infix  3 _∎
+
+data _—↠_ : Context → Context → Set where
+  _∎ : ∀ M
+    ---------------
+    → M —↠ M
+
+  _—→⟨_⟩_ : ∀ L {M N}
+    → L ↣ M
+    → M —↠ N
+    ---------------
+    → L —↠ N
+
+begin_ : ∀ {M N}
+  → M —↠ N
+  ---------
+  → M —↠ N
+begin M—↠N = M—↠N
+
+module ev-testing where
+  _₁ : ∀ {∁ Γ Δ}
+    → ∁ || Γ || Δ ⊢ negIL (refIL "a")
+    —↠ ∁ || "¬a" ∷ Γ || ("¬a" , sNeg (sRef "s_a")) ∷ ("a" , sRef "s_a") ∷ Δ ⊢ ●
+  _₁ {∁} {Γ} {Δ} =
+    begin
+      (∁ || Γ || Δ ⊢ negIL (refIL "a"))
+    —→⟨ {!ev-neg !} ⟩ {!!}

@@ -118,15 +118,15 @@ data _↦_  : Context → Context → Set where
     ---------------------
     → ∁ || Γ || Δ ⊢ refIL r ↦ Δ-ref {∁ || Γ || Δ ⊢ refIL r} {r} {name∈store}
 
-  acc-neg : ∀ {∁ Γ Δ s}
+  acc-neg-s : ∀ {∁ Γ Δ s}
     ----------------------
     → ∁ || Γ || Δ ⊢ negIL (symIL s) ↦ Δ-negate (∁ || Γ || Δ ⊢ negIL (symIL s))
 
-  acc-C : ∀ {∁ Γ Δ d l r}
+  acc-c : ∀ {∁ Γ Δ d l r}
     ----------------------
     → ∁ || Γ || Δ ⊢ chcIL d l r ↦ ∁ || Γ || Δ ⊢ chcIL d l r
 
-  acc-neg-C : ∀ {∁ Γ Δ d l r}
+  acc-neg-c : ∀ {∁ Γ Δ d l r}
     ----------------------
     → ∁ || Γ || Δ ⊢ negIL (chcIL d l r) ↦ ∁ || Γ || Δ ⊢ chcIL d (vNeg l) (vNeg r) -- notice negation is translated back to VPL
 
@@ -146,6 +146,12 @@ data _↦_  : Context → Context → Set where
   acc-dm-and : ∀ {∁ Γ Δ l r}
     ----------------------
     → ∁ || Γ || Δ ⊢ negIL (andIL l r) ↦  ∁ || Γ || Δ ⊢ orIL (negIL l) (negIL r)
+
+  acc-neg : ∀ {∁ Γ Δ Δ₁ Δ₂ v v′ v′′}
+    → ∁ || Γ || Δ  ⊢ v ↦ ∁ || Γ || Δ₁ ⊢ v′
+    → ∁ || Γ || Δ₁  ⊢ negIL v′ ↦ ∁ || Γ || Δ₂ ⊢ v′′
+    ----------------------
+    → ∁ || Γ || Δ ⊢ negIL v ↦ ∁ || Γ || Δ₂ ⊢ v′′
 
   acc-vor : ∀ {∁ Γ Δ Δ₁ Δ₂ l r l′ r′}
     → ∁ || Γ || Δ  ⊢ l ↦ ∁ || Γ || Δ₁ ⊢ l′
@@ -172,12 +178,17 @@ module acc-testing where
   _₁ : ∀ {∁ Γ}
     → ∁ || Γ || ("b", sRef "b") ∷ ("a" , sRef "a") ∷ [] ⊢ orIL (negIL (symIL (sRef "a"))) (symIL (sRef "b"))
     ↦ ∁ || Γ || ("¬a" , sNeg (sRef "a")) ∷ ("b", sRef "b") ∷ ("a" , sRef "a") ∷ [] ⊢ orIL (symIL (sRef "¬a")) (symIL (sRef "b"))
-  _₁ = acc-vor acc-neg acc-sym
+  _₁ = acc-vor acc-neg-s acc-sym
 
   _₂ : ∀ {∁ Γ}
     →  ∁ || Γ || [] ⊢ orIL (symIL (sRef "a")) (symIL (sRef "b"))
      ↦ ∁ || Γ || ("a∨b" , sOr (sRef "a") (sRef "b")) ∷ [] ⊢ symIL (sOr (sRef "a") (sRef "b"))
   _₂ = acc-sor
+
+  _ₙ : ∀ {∁ Γ}
+    →  ∁ || Γ || [] ⊢ negIL (refIL "a")
+    ↦ ∁ || Γ || ("¬a" , sNeg (sRef "a")) ∷ ("a" , sRef "a") ∷ [] ⊢ symIL (sRef "¬a")
+  _ₙ = acc-neg acc-ref (acc-neg {!!} {!!})
 
   -- _₃ : ([] , refIL "a") ↦ (("a" , sRef "s_a") ∷ [] , symIL (sRef "a"))
   --    → ([] , refIL "b") ↦ (("b" , sRef "s_b") ∷ [] , symIL (sRef "b"))

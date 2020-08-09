@@ -71,3 +71,15 @@ data Context : Set where
 symNames : Context → List Reference
 symNames ∅ = []
 symNames (_ || _ || s ⊢ _) = names s
+
+
+-- data _—↠_ : Context → Context → Set where
+--   _∎ : ∀ M
+--     ---------------
+--     → M —↠ M
+
+--   _—→⟨_⟩_ : ∀ L {M N}
+--     → L ↣ M
+--     → M —↠ N
+--     ---------------
+--     → L —↠ N
