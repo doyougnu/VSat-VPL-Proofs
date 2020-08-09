@@ -47,13 +47,13 @@ open import Relation.Nullary.Decidable using (⌊_⌋; True; toWitness; fromWitn
 -- | possible creating a new symbolic reference if needed
 Δ-negate : Context → Context
 Δ-negate ∅ = ∅
-Δ-negate (∁ || Γ || st ⊢ (negIL (symIL a@(sRef s)))) = ∁ || Γ || Δ′ ⊢ (symIL ∘ sRef $ s′-ref)
+Δ-negate (∁ || Γ || st ⊢ (negIL (symIL a@(sRef s)))) = ∁ || Γ || Δ′ ⊢ s-ref s′-ref
   where
   s′ : Symbolic
   s′ = sNeg a
 
   s′-ref : Reference
-  s′-ref = "¬" Data.String.++ s
+  s′-ref = s-neg s
 
   s′∈Δ : Bool
   s′∈Δ = any (s′-ref ==_) $ names st
@@ -179,7 +179,7 @@ module ↦-properties where
 module acc-testing where
   _₁ : ∀ {∁ Γ}
     → ∁ || Γ || ("b", sRef "b") ∷ ("a" , sRef "a") ∷ [] ⊢ orIL (negIL (symIL (sRef "a"))) (symIL (sRef "b"))
-    ↦ ∁ || Γ || ("¬a" , sNeg (sRef "a")) ∷ ("b", sRef "b") ∷ ("a" , sRef "a") ∷ [] ⊢ orIL (symIL (sRef "¬a")) (symIL (sRef "b"))
+    ↦ ∁ || Γ || ("s_¬a" , sNeg (sRef "a")) ∷ ("b", sRef "b") ∷ ("a" , sRef "a") ∷ [] ⊢ orIL (symIL (sRef "s_¬a")) (symIL (sRef "b"))
   _₁ = acc-vor acc-neg-s acc-sym
 
   _₂ : ∀ {∁ Γ}
@@ -191,7 +191,7 @@ module acc-testing where
     →  ∁ || Γ || [] ⊢ negIL (refIL "a")
     ↦ ∁ || Γ || ("a" , sRef "a") ∷ [] ⊢ negIL (symIL (sRef "a"))
     → ∁ || Γ || ("a" , sRef "a") ∷ [] ⊢ negIL (symIL (sRef "a"))
-    ↦ ∁ || Γ || ("¬a" , sNeg (sRef "a")) ∷ ("a" , sRef "a") ∷ [] ⊢ (symIL (sRef "¬a"))
+    ↦ ∁ || Γ || ("s_¬a" , sNeg (sRef "a")) ∷ ("a" , sRef "a") ∷ [] ⊢ s-ref "s_¬a"
   _ₙ a = acc-neg-s
 
   _₃ : ∀ {∁ Γ Δ Δ₁ Δ₂ Δ₃ a a′ a′′ b b′}

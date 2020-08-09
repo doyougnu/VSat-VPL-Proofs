@@ -70,11 +70,17 @@ mk-s-or a b = a Data.String.++ "∨" Data.String.++ b
 mk-s-and : Reference → Reference → Reference
 mk-s-and a b = a Data.String.++ "∧" Data.String.++ b
 
+mk-s-neg : Reference → Reference
+mk-s-neg a = "¬" Data.String.++ a
+
 s-or : Reference → Reference → Reference
 s-or a = fresh ∘ mk-s-or a
 
 s-and : Reference → Reference → Reference
 s-and a = fresh ∘ mk-s-and a
+
+s-neg : Reference → Reference
+s-neg = fresh ∘ mk-s-neg
 
 -- | a context is a triple of the configuration, the symbolic store and the
 -- | solver memory. In the paper we split the triple for each operation, so
